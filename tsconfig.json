@@ -8,7 +8,7 @@
     "forceConsistentCasingInFileNames": true,
     "inlineSources": true,
     "inlineSourceMap": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "module": "esnext",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
@@ -29,6 +29,18 @@
     "noEmit": true
   },
   "include": [
-    "src"
+    "pages",
+    "providers",
+    "src",
+    "styles",
+    "widgets"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "plugins": [
+    {
+      "name": "typescript-plugin-css-modules"
+    }
   ]
 }

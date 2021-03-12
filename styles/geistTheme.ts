@@ -1,9 +1,5 @@
 import { Themes } from '@geist-ui/react'
 
-export interface Configuration {
-    network: 'main' | 'test'
-}
-
 export const geistTheme = Themes.createFromDark({
     type: 'appDark',
     palette: {
