@@ -7,9 +7,16 @@ interface Provider {
 
 export type Web3State = 'connected' | 'connecting' | 'disconnected' | 'disconnecting'
 
+interface Web3Wrapper {
+    connect: () => Promise<Provider>
+    disconnect: () => Promise<void>
+    provider: Provider | null
+    state: Web3State
+}
+
 function useBrowserWeb3(options: {
     network: 'test'
-}) {
+}): Web3Wrapper {
     const { network } = options
 
     const [provider, setProvider] = useState<Provider | null>(null)
@@ -24,7 +31,7 @@ function useBrowserWeb3(options: {
     const connecting = useRef<Promise<Provider> | null>(null)
     const disconnecting = useRef<Promise<void> | null>(null)
 
-    const connect = async () => {
+    const connect = async (): Promise<Provider> => {
         setState('connecting')
 
         const provider = await web3Modal.connect()
@@ -34,37 +41,44 @@ function useBrowserWeb3(options: {
         return provider
     }
 
-    const disconnect = async () => {
+    const disconnect = async (): Promise<void> => {
         setState('disconnecting')
 
         if (typeof provider?.close === 'function') {
             const ret = provider.close() as unknown
-            if (ret instanceof Promise)
-                await ret
+            if (ret instanceof Promise) { await ret }
         }
         setProvider(null)
         web3Modal.clearCachedProvider()
 
         setState('disconnected')
-        return Promise.resolve()
+        return await Promise.resolve()
     }
 
     return {
-        connect: () => connecting.current = connecting.current ??
+        connect: async () => await (connecting.current = connecting.current ??
             connect().finally(() => {
                 connecting.current = null
-            }),
-        disconnect: () => disconnecting.current = disconnecting.current ??
+            })
+        ),
+        disconnect: async () => await (disconnecting.current = disconnecting.current ??
             disconnect().finally(() => {
                 disconnecting.current = null
-            }),
+            })
+        ),
         provider,
         state
     }
 }
 
-function useDummyWeb3() {
-    return { connect: () => { }, disconnect: () => { }, provider: null, state: 'disconnected' as Web3State }
+function useDummyWeb3(): Web3Wrapper {
+    return {
+        connect: async (): Promise<Provider> => { throw new Error('SSR in use') },
+        disconnect: async (): Promise<void> => { throw new Error('SSR in use') },
+        provider: null,
+        state: 'disconnected' as Web3State
+
+    }
 }
 
 export const useWeb3 = typeof window === 'undefined' ? useDummyWeb3 : useBrowserWeb3

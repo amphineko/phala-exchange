@@ -29,6 +29,8 @@
     "noEmit": true
   },
   "include": [
+    "contexts",
+    "lib",
     "pages",
     "providers",
     "src",
