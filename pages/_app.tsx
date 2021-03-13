@@ -6,7 +6,6 @@ import React, { useMemo } from 'react'
 import Web3 from 'web3'
 import Web3Context from '../contexts/Web3Context'
 import { useWeb3 } from '../providers/web3'
-import '../styles/app.css'
 import Account from '../widgets/Account'
 
 export default function Application({ Component, pageProps }: AppProps): JSX.Element {
