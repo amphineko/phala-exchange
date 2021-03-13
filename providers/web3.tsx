@@ -5,7 +5,7 @@ interface Provider {
     close?: () => void
 }
 
-type Web3State = 'connected' | 'connecting' | 'disconnected' | 'disconnecting'
+export type Web3State = 'connected' | 'connecting' | 'disconnected' | 'disconnecting'
 
 function useBrowserWeb3(options: {
     network: 'test'
@@ -64,7 +64,7 @@ function useBrowserWeb3(options: {
 }
 
 function useDummyWeb3() {
-    return { connect: () => { }, disconnect: () => { }, provider: null, state: 'disconnected' }
+    return { connect: () => { }, disconnect: () => { }, provider: null, state: 'disconnected' as Web3State }
 }
 
 export const useWeb3 = typeof window === 'undefined' ? useDummyWeb3 : useBrowserWeb3
