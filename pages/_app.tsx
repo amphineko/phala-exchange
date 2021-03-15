@@ -70,7 +70,7 @@ export default function Application({ Component, pageProps }: AppProps): JSX.Ele
     })[router.pathname] ?? undefined
 
     return (
-        <Web3Context.Provider value={web3}>
+        <Web3Context.Provider value={{ account, web3 }}>
             <CssBaseline />
             <Container maxWidth="sm">
                 <Paper elevation={4}>
