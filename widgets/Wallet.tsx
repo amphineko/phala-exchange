@@ -10,7 +10,7 @@ export interface Provider {
     close: () => void
 }
 
-export default function Account(props: {
+export default function WalletWidget(props: {
     connect: () => void
     currentState: Web3State
     disconnect: () => void

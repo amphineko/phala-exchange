@@ -6,12 +6,16 @@ import React, { useMemo } from 'react'
 import Web3 from 'web3'
 import Web3Context from '../contexts/Web3Context'
 import { useWeb3 } from '../providers/web3'
-import Account from '../widgets/Account'
+import WalletWidget from '../widgets/Wallet'
 
 export default function Application({ Component, pageProps }: AppProps): JSX.Element {
     const {
-        connect: connectWeb3, disconnect: disconnectWeb3, provider: web3provider, state: web3state
+        connect: connectWeb3,
+        disconnect: disconnectWeb3,
+        provider: web3provider,
+        state: web3state
     } = useWeb3({ network: 'test' })
+
     const web3 = useMemo(() => {
         return web3provider === null ? null : new Web3(web3provider as any)
     }, [web3provider])
@@ -30,7 +34,7 @@ export default function Application({ Component, pageProps }: AppProps): JSX.Ele
                 <Paper elevation={4}>
                     <Box component="header" style={{ padding: '1rem', paddingBottom: 0 }}>
                         <h1 style={{ fontSize: '1.2rem', fontWeight: 'normal' }}>tPHA exchange</h1>
-                        <Account connect={connectWeb3} currentState={web3state} disconnect={disconnectWeb3} web3={web3} />
+                        <WalletWidget connect={connectWeb3} currentState={web3state} disconnect={disconnectWeb3} web3={web3} />
                     </Box>
                     <Box>
                         <Tabs value={currentTabIndex}>
