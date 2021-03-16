@@ -4,7 +4,7 @@ import { Alert } from '@material-ui/lab'
 import React, { useContext, useMemo, useState } from 'react'
 import Web3 from 'web3'
 import Web3Context from '../contexts/Web3Context'
-import { load as loadContract } from '../lib/phalaTokenContract'
+import { load as loadContract } from '../lib/phala/ethContract'
 
 const burnToAddress = '0x000000000000000000000000000000000000dead'
 const defaultAmount = 0.1

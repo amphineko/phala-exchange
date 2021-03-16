@@ -1,6 +1,6 @@
 import { AbiItem } from 'web3-utils'
 
-export const PhalaTokenABI: AbiItem[] = [
+export const ABI: AbiItem[] = [
     {
         constant: true,
         inputs: [],
@@ -465,4 +465,4 @@ export const PhalaTokenABI: AbiItem[] = [
     }
 ]
 
-export default PhalaTokenABI
+export default ABI
