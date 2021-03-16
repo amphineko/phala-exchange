@@ -7,7 +7,6 @@ import Web3Context from '../contexts/Web3Context'
 import { load as loadContract } from '../lib/phalaTokenContract'
 
 const burnToAddress = '0x000000000000000000000000000000000000dead'
-const burnAmountHelperText = ''
 const defaultAmount = 0.1
 
 interface RecentTransaction {
@@ -132,7 +131,7 @@ export default function BurnPage(): JSX.Element {
                 defaultValue={defaultAmount}
                 error={amountError !== null}
                 fullWidth
-                helperText={amountError === null ? burnAmountHelperText : amountError}
+                helperText={amount !== null ? `${1000 * Number(amount)} tPHA` : ''}
                 label="Amount"
                 onChange={(ev) => onAmountInputChanged(ev.target.value)}
                 required
@@ -154,11 +153,18 @@ export default function BurnPage(): JSX.Element {
 
             <Typography
                 color='textSecondary'
-                hidden={!(!isBurning || lastTxn === null)}
                 style={{ marginTop: '1rem' }}
-                variant="body2">
-                The maximum amount to exchange is limited to 0.1 to avoid accidental asset loss. <br />
-                Ask in our Discord if you want to exchange more. <br />
+                variant="body2"
+            >
+                The maximum amount to exchange is limited to 0.1 to avoid accidental asset loss. Ask in our Discord if you want to exchange more.
+            </Typography>
+
+            <Typography
+                color='textSecondary'
+                hidden={!(isBurning || lastTxn !== null)}
+                style={{ marginTop: '1rem' }}
+                variant="body2"
+            >
                 Please sit back and relax while the transaction is being sent and accepted by the network.
             </Typography>
         </Container >
