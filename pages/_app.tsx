@@ -69,6 +69,11 @@ export default function Application({ Component, pageProps }: AppProps): JSX.Ele
         '/claim': 1
     })[router.pathname] ?? undefined
 
+    if (currentTabIndex === undefined && typeof window !== 'undefined') {
+        // eslint-disable-next-line no-void
+        void router.push('/burn')
+    }
+
     return (
         <Web3Context.Provider value={{ account, web3 }}>
             <CssBaseline />
