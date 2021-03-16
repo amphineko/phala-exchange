@@ -34,37 +34,43 @@ function useBrowserWeb3(options: {
     const connect = async (): Promise<Provider> => {
         setState('connecting')
 
-        const provider = await web3Modal.connect()
-        setProvider(provider)
+        try {
+            const provider = await web3Modal.connect()
+            setProvider(provider)
 
-        setState('connected')
-        return provider
+            setState('connected')
+            return provider
+        } catch (error) {
+            setState('disconnected')
+            throw error
+        }
     }
 
     const disconnect = async (): Promise<void> => {
         setState('disconnecting')
 
-        if (typeof provider?.close === 'function') {
-            const ret = provider.close() as unknown
-            if (ret instanceof Promise) { await ret }
-        }
-        setProvider(null)
-        web3Modal.clearCachedProvider()
+        try {
+            if (typeof provider?.close === 'function') {
+                const ret = provider.close() as unknown
+                if (ret instanceof Promise) { await ret }
+            }
+            setProvider(null)
+            web3Modal.clearCachedProvider()
 
-        setState('disconnected')
-        return await Promise.resolve()
+            setState('disconnected')
+            return await Promise.resolve()
+        } catch (error) {
+            setState('disconnected')
+            throw error
+        }
     }
 
     return {
         connect: async () => await (connecting.current = connecting.current ??
-            connect().finally(() => {
-                connecting.current = null
-            })
+            connect().finally(() => { connecting.current = null })
         ),
         disconnect: async () => await (disconnecting.current = disconnecting.current ??
-            disconnect().finally(() => {
-                disconnecting.current = null
-            })
+            disconnect().finally(() => { disconnecting.current = null })
         ),
         provider,
         state
