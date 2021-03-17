@@ -27,50 +27,51 @@ export async function createClaimSignature(phaClaimer: string, ethTxnHash: strin
 }
 
 /**
- * @param account Address of account who claim the PHA tokens on Phala netowork
- * @param ethTxnHash Hash of transaction that burns the Ethereum PHA tokens
- * @param ethSign Signature to confirm receipt address on Phala network
+ * @param claimer Address of account who claim the PHA tokens on Phala netowork
+ * @param txHash Hash of transaction that burns the Ethereum PHA tokens
+ * @param sign Signature to confirm receipt address on Phala network
  * @param network Network description of Phala network connect to
  */
-export async function sendClaimTransaction(account: string, ethTxnHash: string, ethSign: Signature, network: NetworkDescription): Promise<Promise<Hash>> {
+export async function sendClaimTransaction(
+    claimer: string, txHash: string, sign: Signature, network: NetworkDescription,
+    extrinsicCallback: (error: Error | null, hash: Hash) => void
+): Promise<void> {
     const provider = new WsProvider(network.websocketEndpoint)
     const api = await ApiPromise.create({ provider, types: PhalaTypes })
 
-    const claimTxn = api.tx.phaClaim.claimErc20Token(account, ethTxnHash, ethSign)
+    const claimTx = api.tx.phaClaim.claimErc20Token(claimer, txHash, sign)
 
-    return await new Promise((resolve, reject) => {
-        const [resolveSend, rejectSend] = [resolve, reject]
-
-        const extrinsic = new Promise<Hash>((resolve) => {
-            claimTxn.send(({ events, status }) => {
-                if (!status.isFinalized && !status.isInBlock) {
-                    if (status.isInvalid) {
-                        throw new Error('Invalid transaction')
-                    }
-
-                    // TODO: remove this
-                    console.error(events)
-                    console.error(status)
-                    throw new Error('Unknown error')
+    await claimTx.send(({ events, status }) => {
+        try {
+            if (!status.isFinalized && !status.isInBlock) {
+                if (status.isInvalid) {
+                    throw new Error('Invalid transaction')
                 }
 
-                events
-                    .filter(({ event }) => api.events.system.ExtrinsicFailed.is(event))
-                    .forEach(({ event: { data: [error, info] } }) => {
-                        // https://polkadot.js.org/docs/api/cookbook/tx#how-do-i-get-the-decoded-enum-for-an-extrinsicfailed-event
+                // TODO: remove this
+                console.error(events)
+                console.error(status)
+                throw new Error('Unknown error')
+            }
 
-                        if ((error as DispatchError)?.isModule?.valueOf()) {
-                            const decoded = api.registry.findMetaError((error as DispatchError).asModule)
-                            const { documentation, method, section } = decoded
+            events
+                .filter(({ event }) => api.events.system.ExtrinsicFailed.is(event))
+                .forEach(({ event: { data: [error, info] } }) => {
+                    // https://polkadot.js.org/docs/api/cookbook/tx#how-do-i-get-the-decoded-enum-for-an-extrinsicfailed-event
 
-                            throw new Error(`ExtrinsicFailed: ${section}.${method}: ${documentation.join(' ')}`)
-                        } else {
-                            throw new Error(`ExtrinsicFailed: ${error?.toString() ?? (error as unknown as string)}`)
-                        }
-                    })
+                    if ((error as DispatchError)?.isModule?.valueOf()) {
+                        const decoded = api.registry.findMetaError((error as DispatchError).asModule)
+                        const { documentation, method, section } = decoded
 
-                resolve(status.hash)
-            }).then(() => resolveSend(extrinsic), (reason) => rejectSend(reason))
-        })
+                        throw new Error(`ExtrinsicFailed: ${section}.${method}: ${documentation.join(' ')}`)
+                    } else {
+                        throw new Error(`ExtrinsicFailed: ${error?.toString() ?? (error as unknown as string)}`)
+                    }
+                })
+
+            extrinsicCallback(null, status.hash)
+        } catch (error) {
+            extrinsicCallback(error, status.hash)
+        }
     })
 }
