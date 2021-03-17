@@ -1,18 +1,19 @@
 export interface NetworkDescription {
+    inspectTxUrl: (hash: string) => string
     websocketEndpoint: string
 }
 
 export const Networks: Record<string, NetworkDescription> = {
     main: {
-        // phalaBase: 'https://poc3.phala.network',
+        inspectTxUrl: (hash) => `https://poc3.phala.network/polkadotjs/#/explorer/query/${hash}`,
         websocketEndpoint: 'wss://poc3.phala.network/ws'
     },
     test: {
-        // phalaBase: 'https://poc3.phala.network',
+        inspectTxUrl: (hash) => `https://poc3.phala.network/polkadotjs/#/explorer/query/${hash}`,
         websocketEndpoint: 'wss://poc3.phala.network/ws'
     },
     localhost: {
-        // phalaBase: 'https://poc3.phala.network',
+        inspectTxUrl: (hash) => `http://localhost:9944/polkadotjs/#/explorer/query/${hash}`,
         websocketEndpoint: 'ws:////localhost:9944'
     }
 }

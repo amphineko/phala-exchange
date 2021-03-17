@@ -7,7 +7,7 @@ import { Brand } from '../brand'
 import { NetworkDescription } from './phaNetworks'
 import { Types as PhalaTypes } from './phaTypes'
 
-type Signature = Brand<string>
+export type Signature = Brand<string>
 
 export async function createClaimSignature(phaClaimer: string, ethTxnHash: string, ethAccount: string, web3: Web3): Promise<Signature> {
     try {
@@ -18,9 +18,9 @@ export async function createClaimSignature(phaClaimer: string, ethTxnHash: strin
         throw new Error('Malformed claimer address')
     }
 
-    const hash = ethTxnHash.match(/^0x([A-Fa-f0-9]{64})$/)?.[1]
+    const hash = ethTxnHash.match(/^0x([A-Fa-f0-9]{64})$/)?.[1] ?? undefined
     if (hash === undefined) {
-        throw new Error('Malformed transaction hash')
+        throw new Error(`Malformed transaction hash: ${ethTxnHash}`)
     }
 
     return await web3.eth.personal.sign(`0x${phaClaimer}${hash}`, ethAccount, '') as Signature

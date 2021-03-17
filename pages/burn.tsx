@@ -112,7 +112,7 @@ export default function BurnPage(): JSX.Element {
     ), [lastTxnError])
 
     const lastTxnInfoWidget = useMemo(() => {
-        if (lastTxn === null) return false
+        if (lastTxn === null) return true
 
         const txnInspectUrl = `${lastTxn.etherscanBaseUrl}/tx/${lastTxn.hash}`
 
