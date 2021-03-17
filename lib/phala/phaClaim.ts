@@ -39,7 +39,10 @@ export async function sendClaimTransaction(
     const provider = new WsProvider(network.websocketEndpoint)
     const api = await ApiPromise.create({ provider, types: PhalaTypes })
 
-    const claimTx = api.tx.phaClaim.claimErc20Token(claimer, txHash, sign)
+    const claimTx = api.tx.phaClaim?.claimErc20Token?.(claimer, txHash, sign)
+    if (claimTx === undefined) {
+        throw new Error('Cannot create claimErc20Token transaction')
+    }
 
     await claimTx.send(({ events, status }) => {
         try {
