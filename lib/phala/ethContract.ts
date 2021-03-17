@@ -1,6 +1,6 @@
 import Web3 from 'web3'
 import { Contract } from 'web3-eth-contract'
-import PhalaTokenABI from './phalaTokenABI'
+import ABI from './ethTokenABI'
 
 interface EthereumConst {
     etherscanBaseUrl: string
@@ -31,6 +31,6 @@ export async function load(web3: Web3): Promise<{ consts: EthereumConst, contrac
 
     return {
         consts,
-        contract: new web3.eth.Contract(PhalaTokenABI, consts.tokenAddress)
+        contract: new web3.eth.Contract(ABI, consts.tokenAddress)
     }
 }
