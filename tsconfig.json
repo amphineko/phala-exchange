@@ -38,7 +38,8 @@
     "widgets"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "lib/phala/types"
   ],
   "plugins": [
     {
