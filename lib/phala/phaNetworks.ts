@@ -5,11 +5,11 @@ export interface NetworkDescription {
 
 export const Networks: Record<string, NetworkDescription> = {
     main: {
-        inspectTxUrl: (hash) => `https://poc3.phala.network/polkadotjs/#/explorer/query/${hash}`,
+        inspectTxUrl: (hash) => `https://poc4.phala.network/polkadotjs/#/explorer/query/${hash}`,
         websocketEndpoint: 'wss://poc4.phala.network/ws'
     },
     test: {
-        inspectTxUrl: (hash) => `https://poc3.phala.network/polkadotjs/#/explorer/query/${hash}`,
+        inspectTxUrl: (hash) => `https://poc4.phala.network/polkadotjs/#/explorer/query/${hash}`,
         websocketEndpoint: 'wss://poc4.phala.network/ws'
     },
     localhost: {
