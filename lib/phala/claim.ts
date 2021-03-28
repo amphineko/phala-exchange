@@ -1,7 +1,8 @@
+import { EcdsaSignature } from '@phala-network/typedefs'
 import { ApiPromise, WsProvider } from '@polkadot/api'
 import { DispatchError, Hash } from '@polkadot/types/interfaces'
 import { hexToU8a, u8aToHex } from '@polkadot/util'
-import { decodeAddress } from '@polkadot/util-crypto'
+import { cryptoWaitReady } from '@polkadot/util-crypto'
 import Web3 from 'web3'
 import { Brand } from '../brand'
 import { NetworkDescription } from './network'
@@ -9,41 +10,32 @@ import { Types as PhalaTypes } from './typedefs'
 
 export type Signature = Brand<string>
 
-export async function createClaimSignature(phaClaimer: string, ethTxnHash: string, ethAccount: string, web3: Web3): Promise<Signature> {
-    try {
-        // normalize and validate (by polkadot) the address of claimer
-        phaClaimer = u8aToHex(decodeAddress(phaClaimer))
-    } catch (reason) {
-        console.error(`Malformed claimer address (${phaClaimer}): ${reason as string}`)
-        throw new Error('Malformed claimer address')
-    }
-
-    const hash = ethTxnHash.match(/^0x([A-Fa-f0-9]{64})$/)?.[1] ?? undefined
-    if (hash === undefined) {
-        throw new Error(`Malformed transaction hash: ${ethTxnHash}`)
-    }
-
-    return await web3.eth.personal.sign(`0x${phaClaimer}${hash}`, ethAccount, '') as Signature
+/**
+ * @param claimer Account address of claimer on Phala
+ * @param tx Burn transaction on Ethereum
+ * @param account Account address who burned the tokens on Ethereum
+ */
+export async function createClaimSignature(claimer: Uint8Array, tx: Uint8Array, account: string, web3: Web3): Promise<EcdsaSignature> {
+    const message = `${u8aToHex(claimer)}${u8aToHex(tx)}`
+    console.log(`Signing message "${message}"`)
+    const signature = await web3.eth.personal.sign(message, account, '')
+    return hexToU8a(signature, 65 * 8) as EcdsaSignature
 }
 
 /**
  * @param claimer Address of account who claim the PHA tokens on Phala netowork
- * @param txHash Hash of transaction that burns the Ethereum PHA tokens
+ * @param tx Hash of transaction that burns the Ethereum PHA tokens
  * @param sign Signature to confirm receipt address on Phala network
  * @param network Network description of Phala network connect to
  */
 export async function sendClaimTransaction(
-    claimer: string, txHash: string, sign: Signature, network: NetworkDescription
+    claimer: Uint8Array, tx: Uint8Array, sign: EcdsaSignature, network: NetworkDescription
 ): Promise<Hash> {
     const provider = new WsProvider(network.websocketEndpoint)
     const api = await ApiPromise.create({ provider, types: PhalaTypes })
+    await cryptoWaitReady()
 
-    const claimTx = api.tx.phaClaim?.claimErc20Token?.(claimer, txHash, sign)
-    if (claimTx === undefined) {
-        throw new Error('Cannot create claimErc20Token transaction')
-    }
-
-    const extrinsic = api.tx.phaClaim.claimErc20Token(hexToU8a(claimer, 160), hexToU8a(txHash, 256), hexToU8a(sign))
+    const extrinsic = api.tx.phaClaim.claimErc20Token(claimer, tx, sign)
     const promise = new Promise<Hash>((resolve, reject) => {
         // TODO: pass nonce to signAndSend
         extrinsic.send((result) => {

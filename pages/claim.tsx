@@ -1,60 +1,41 @@
 import { Box, Button, CircularProgress, Container, Link, TextField } from '@material-ui/core'
 import { MonetizationOn } from '@material-ui/icons'
 import { Alert } from '@material-ui/lab'
+import { EcdsaSignature, EthereumTxHash } from '@phala-network/typedefs'
 import { decodeAddress } from '@polkadot/util-crypto'
+import { isLeft, isRight } from 'fp-ts/lib/These'
 import React, { useContext, useMemo, useState } from 'react'
 import Web3Context from '../contexts/Web3Context'
-import { createClaimSignature, sendClaimTransaction, Signature } from '../lib/phala/claim'
+import { ethereumTxHash } from '../lib/ethereum/io'
+import { createClaimSignature, sendClaimTransaction } from '../lib/phala/claim'
 import { Networks } from '../lib/phala/network'
 
-function useClaimer(): [string | null, string | null, (input: string) => void] {
-    const [claimer, setClaimer] = useState<string | null>(null)
+function useClaimer(): [Uint8Array | null, string | null, (input: string) => void] {
+    const [claimer, setClaimer] = useState<Uint8Array | null>(null)
     const [claimerError, setClaimerError] = useState<string | null>(null)
 
-    return [
-        claimer,
-        claimerError,
-        (input: string): void => {
-            if (input.length === 0) {
-                setClaimer(null)
-                setClaimerError(null)
-                return
-            }
-
-            try {
-                decodeAddress(input) // verify by attempting to decode
-                setClaimer(input)
-                setClaimerError(null)
-            } catch (error) {
-                // decodeAddress should throw when invalid
-                const s = error instanceof Error ? error.message : toString.call(error)
-                setClaimer(null)
-                setClaimerError(s)
-            }
+    return [claimer, claimerError, (input: string): void => {
+        try {
+            // verify by attempting to decode
+            setClaimer(decodeAddress(input))
+            setClaimerError(null)
+        } catch (error) {
+            // decodeAddress should throw when invalid
+            setClaimer(null)
+            setClaimerError(error instanceof Error ? error.message : toString.call(error))
         }
-    ]
+    }]
 }
 
-function useEthTxHash(): [string | null, string | null, (input: string) => void] {
-    const [txHash, setTxHash] = useState<string | null>(null)
+function useEthTxHash(): [EthereumTxHash | null, string | null, (input: string) => void] {
     const [error, setError] = useState<string | null>(null)
+    const [txHash, setTxHash] = useState<EthereumTxHash | null>(null)
 
-    const regex = /^0x[A-Fa-f0-9]{64}$/
-
-    return [
-        txHash, error, (input: string) => {
-            setTxHash(null)
-            setError(null)
-
-            if (input.length === 0) { return }
-
-            if (regex.test(input)) {
-                setTxHash(input)
-            } else {
-                setError('Malformed transaction hash')
-            }
-        }
-    ]
+    return [txHash, error, (input: string) => {
+        const decoded = ethereumTxHash.decode(input)
+        setError(isLeft(decoded) ? 'Invalid transaction hash' : null)
+        setTxHash(isRight(decoded) ? ethereumTxHash.encode(decoded.right) : null)
+    }]
 }
 
 const claimerHelperText = 'Account who receive the tokens on the Phala network'
@@ -88,39 +69,27 @@ export default function ClaimPage(): JSX.Element {
         const network = Networks.test // TODO: add network selection
         if (network === undefined) { throw new Error('Assertion failed') }
 
-        let sign: Signature
+        let sign: EcdsaSignature
         try {
             sign = await createClaimSignature(claimer, txHash, account, web3)
         } catch (error) {
             throw new Error(`Signing failed: ${(error as Error)?.message ?? error}`)
         }
 
-        try {
-            await sendClaimTransaction(claimer, txHash, sign, network, (error, hash) => {
-                if (error !== null) {
-                    setClaimError(`Extrinsic failed: ${error.message ?? error}`)
-                    return
-                }
-
-                const hashHex = u8aToHex(hash)
-                setClaimTx({ hash: hashHex, url: network.inspectTxUrl(hashHex) })
-            })
-        } catch (error) {
-            throw new Error(`Send Tx failed: ${(error as Error)?.message ?? error} `)
-        }
+        const hash = await sendClaimTransaction(claimer, txHash, sign, network)
+        console.log('extrinsic sent')
+        setClaimTx({ hash: hash.toHex(), url: network.inspectTxUrl(hash.toHex()) })
     }
 
     const startClaim = (): void => {
-        try {
-            setClaiming(true)
-            setClaimError(null)
-            claim().catch((error) => {
-                console.log(error)
-                setClaimError((claimError as unknown as Error)?.message ?? claimError)
-            })
-        } finally {
+        setClaiming(true)
+        setClaimError(null)
+        claim().catch((error) => {
+            console.log(error)
+            setClaimError((claimError as unknown as Error)?.message ?? claimError)
+        }).finally(() => {
             setClaiming(false)
-        }
+        })
     }
 
     // presentation widgets
@@ -189,7 +158,7 @@ export default function ClaimPage(): JSX.Element {
                     startIcon={isClaiming ? <CircularProgress /> : <MonetizationOn />}
                     style={{ display: 'inline-block', marginTop: '1rem' }}
                     variant="contained"
-                >Exchange</Button>
+                >{isClaiming ? '' : 'Exchange'}</Button>
             </Box>
         </Container>
     )
