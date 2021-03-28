@@ -1,6 +1,6 @@
 import Web3 from 'web3'
 import { Contract } from 'web3-eth-contract'
-import ABI from './ethTokenABI'
+import ABI from './tokenABI'
 
 interface EthereumConst {
     etherscanBaseUrl: string

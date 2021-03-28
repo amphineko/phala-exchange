@@ -1,12 +1,11 @@
 import { Box, Button, CircularProgress, Container, Link, TextField } from '@material-ui/core'
 import { MonetizationOn } from '@material-ui/icons'
 import { Alert } from '@material-ui/lab'
-import { u8aToHex } from '@polkadot/util'
 import { decodeAddress } from '@polkadot/util-crypto'
 import React, { useContext, useMemo, useState } from 'react'
 import Web3Context from '../contexts/Web3Context'
-import { createClaimSignature, sendClaimTransaction, Signature } from '../lib/phala/phaClaim'
-import { Networks } from '../lib/phala/phaNetworks'
+import { createClaimSignature, sendClaimTransaction, Signature } from '../lib/phala/claim'
+import { Networks } from '../lib/phala/network'
 
 function useClaimer(): [string | null, string | null, (input: string) => void] {
     const [claimer, setClaimer] = useState<string | null>(null)
