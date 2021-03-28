@@ -520,6 +520,11 @@
   resolved "https://registry.npm.taobao.org/@opentelemetry/context-base/download/@opentelemetry/context-base-0.14.0.tgz#c67fc20a4d891447ca1a855d7d70fa79a3533001"
   integrity sha1-xn/CCk2JFEfKGoVdfXD6eaNTMAE=
 
+"@phala-network/typedefs@^0.0.4-poc4":
+  version "0.0.4-poc4"
+  resolved "https://registry.yarnpkg.com/@phala-network/typedefs/-/typedefs-0.0.4-poc4.tgz#62d6ac03f58818f4cf7595eed40ac77be4775b3f"
+  integrity sha512-QSXDRby2gT4JAkaetzosTTEHCSzkfgH+vlZlTK/ZLevQp3vcp5bMWs3lMJG2NA44CHc4/9VhS693swQErEx9yw==
+
 "@polkadot/api-derive@4.1.1":
   version "4.1.1"
   resolved "https://registry.npm.taobao.org/@polkadot/api-derive/download/@polkadot/api-derive-4.1.1.tgz#ae130f529dc6cf32b432733f2c7e640537a6f3ca"
@@ -770,11 +775,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/history@*":
-  version "4.7.8"
-  resolved "https://registry.npm.taobao.org/@types/history/download/@types/history-4.7.8.tgz?cache=0&sync_timestamp=1613378831108&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fhistory%2Fdownload%2F%40types%2Fhistory-4.7.8.tgz#49348387983075705fe8f4e02fb67f7daaec4934"
-  integrity sha1-STSDh5gwdXBf6PTgL7Z/farsSTQ=
-
 "@types/json-schema@^7.0.3":
   version "7.0.7"
   resolved "https://registry.npm.taobao.org/@types/json-schema/download/@types/json-schema-7.0.7.tgz?cache=0&sync_timestamp=1613378919536&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fjson-schema%2Fdownload%2F%40types%2Fjson-schema-7.0.7.tgz#98a993516c859eb0d5c4c8f098317a9ea68db9ad"
@@ -820,23 +820,6 @@
   resolved "https://registry.npm.taobao.org/@types/react-dom/download/@types/react-dom-17.0.2.tgz#35654cf6c49ae162d5bc90843d5437dc38008d43"
   integrity sha1-NWVM9sSa4WLVvJCEPVQ33DgAjUM=
   dependencies:
-    "@types/react" "*"
-
-"@types/react-router-dom@^5.1.7":
-  version "5.1.7"
-  resolved "https://registry.npm.taobao.org/@types/react-router-dom/download/@types/react-router-dom-5.1.7.tgz#a126d9ea76079ffbbdb0d9225073eb5797ab7271"
-  integrity sha1-oSbZ6nYHn/u9sNkiUHPrV5ercnE=
-  dependencies:
-    "@types/history" "*"
-    "@types/react" "*"
-    "@types/react-router" "*"
-
-"@types/react-router@*":
-  version "5.1.12"
-  resolved "https://registry.npm.taobao.org/@types/react-router/download/@types/react-router-5.1.12.tgz?cache=0&sync_timestamp=1614625116578&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Freact-router%2Fdownload%2F%40types%2Freact-router-5.1.12.tgz#0f300e09468e7aed86e18241c90238c18c377e51"
-  integrity sha1-DzAOCUaOeu2G4YJByQI4wYw3flE=
-  dependencies:
-    "@types/history" "*"
     "@types/react" "*"
 
 "@types/react-transition-group@^4.2.0":
