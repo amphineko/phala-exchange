@@ -2,6 +2,7 @@ import { Box, Button, CircularProgress, Container, Link, TextField } from '@mate
 import { MonetizationOn } from '@material-ui/icons'
 import { Alert } from '@material-ui/lab'
 import { EcdsaSignature, EthereumTxHash } from '@phala-network/typedefs'
+import { AccountId } from '@polkadot/types/interfaces'
 import { decodeAddress } from '@polkadot/util-crypto'
 import { isLeft, isRight } from 'fp-ts/lib/These'
 import React, { useContext, useMemo, useState } from 'react'
@@ -10,14 +11,14 @@ import { ethereumTxHash } from '../lib/ethereum/io'
 import { createClaimSignature, sendClaimTransaction } from '../lib/phala/claim'
 import { Networks } from '../lib/phala/network'
 
-function useClaimer(): [Uint8Array | null, string | null, (input: string) => void] {
-    const [claimer, setClaimer] = useState<Uint8Array | null>(null)
+function useClaimer(): [AccountId | null, string | null, (input: string) => void] {
+    const [claimer, setClaimer] = useState<AccountId | null>(null)
     const [claimerError, setClaimerError] = useState<string | null>(null)
 
     return [claimer, claimerError, (input: string): void => {
         try {
             // verify by attempting to decode
-            setClaimer(decodeAddress(input))
+            setClaimer(decodeAddress(input) as AccountId)
             setClaimerError(null)
         } catch (error) {
             // decodeAddress should throw when invalid
@@ -101,7 +102,7 @@ export default function ClaimPage(): JSX.Element {
         return null
     }, [account, web3])
 
-    const preconditionWidget = useMemo(() => precondition === null || (
+    const preconditionWidget = useMemo(() => precondition !== null && (
         <Alert severity="error" style={{ marginTop: '1rem' }}>
             <span style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
                 {`${precondition}`}
@@ -109,7 +110,7 @@ export default function ClaimPage(): JSX.Element {
         </Alert>
     ), [precondition])
 
-    const claimErrorWidget = useMemo(() => claimError === null || (
+    const claimErrorWidget = useMemo(() => claimError !== null && (
         <Alert severity="error" style={{ marginTop: '1rem' }}>
             <span style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
                 {`${claimError}`}
@@ -117,7 +118,7 @@ export default function ClaimPage(): JSX.Element {
         </Alert>
     ), [claimError])
 
-    const claimTxWidget = useMemo(() => claimTx === null || (
+    const claimTxWidget = useMemo(() => claimTx !== null && (
         <Alert severity="success" style={{ marginTop: '1rem' }}>
             <span style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
                 Claimed! <Link href={claimTx.url}>{claimTx.hash}</Link>
@@ -133,6 +134,7 @@ export default function ClaimPage(): JSX.Element {
             {claimTxWidget}
             <TextField
                 autoFocus
+                defaultValue='5ECEf1DS4CQSfW9RVg7ZUwiuoF7w9WfZT8sGjSNRLUjzD2gT'
                 error={claimerError !== null}
                 fullWidth
                 helperText={claimerError ?? claimerHelperText}
@@ -143,6 +145,7 @@ export default function ClaimPage(): JSX.Element {
             />
             <TextField
                 autoFocus
+                defaultValue='0xf85cb63dabc74e238f8ae20a8d0521523f051373640e6ec721cca9fb9dd291dc'
                 error={txHashError !== null}
                 fullWidth
                 helperText={txHashError ?? txHashHelperText}
@@ -158,7 +161,7 @@ export default function ClaimPage(): JSX.Element {
                     startIcon={isClaiming ? <CircularProgress /> : <MonetizationOn />}
                     style={{ display: 'inline-block', marginTop: '1rem' }}
                     variant="contained"
-                >{isClaiming ? '' : 'Exchange'}</Button>
+                >{isClaiming ? '' : 'Claim'}</Button>
             </Box>
         </Container>
     )

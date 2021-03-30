@@ -1,6 +1,6 @@
-import { EcdsaSignature } from '@phala-network/typedefs'
+import { EcdsaSignature, EthereumTxHash } from '@phala-network/typedefs'
 import { ApiPromise, WsProvider } from '@polkadot/api'
-import { DispatchError, Hash } from '@polkadot/types/interfaces'
+import { AccountId, DispatchError, Hash } from '@polkadot/types/interfaces'
 import { hexToU8a, u8aToHex } from '@polkadot/util'
 import { cryptoWaitReady } from '@polkadot/util-crypto'
 import Web3 from 'web3'
@@ -15,11 +15,10 @@ export type Signature = Brand<string>
  * @param tx Burn transaction on Ethereum
  * @param account Account address who burned the tokens on Ethereum
  */
-export async function createClaimSignature(claimer: Uint8Array, tx: Uint8Array, account: string, web3: Web3): Promise<EcdsaSignature> {
-    const message = `${u8aToHex(claimer)}${u8aToHex(tx)}`
-    console.log(`Signing message "${message}"`)
+export async function createClaimSignature(claimer: AccountId, tx: EthereumTxHash, account: string, web3: Web3): Promise<EcdsaSignature> {
+    const message = u8aToHex(new Uint8Array([...claimer, ...tx]))
     const signature = await web3.eth.personal.sign(message, account, '')
-    return hexToU8a(signature, 65 * 8) as EcdsaSignature
+    return hexToU8a(signature, 8 * 65) as EcdsaSignature
 }
 
 /**
@@ -29,19 +28,31 @@ export async function createClaimSignature(claimer: Uint8Array, tx: Uint8Array, 
  * @param network Network description of Phala network connect to
  */
 export async function sendClaimTransaction(
-    claimer: Uint8Array, tx: Uint8Array, sign: EcdsaSignature, network: NetworkDescription
+    claimer: AccountId, tx: EthereumTxHash, sign: EcdsaSignature, network: NetworkDescription
 ): Promise<Hash> {
+    await cryptoWaitReady()
     const provider = new WsProvider(network.websocketEndpoint)
     const api = await ApiPromise.create({ provider, types: PhalaTypes })
-    await cryptoWaitReady()
+
+    const burnedTx = await api.query.phaClaim.burnedTransactions(tx)
+    const claimState = await api.query.phaClaim.claimState(tx)
+
+    if (burnedTx.isSome) {
+        const [expectedSigner, amount] = burnedTx.unwrap()
+        console.log('On-chain burn transaction: ', u8aToHex(expectedSigner), ' ', amount.toHuman())
+    } else {
+        throw new Error('Burn transaction is not found on Phala')
+    }
+
+    if (claimState.unwrapOr<Boolean>(false) === true) {
+        throw new Error('Tokens are already claimed')
+    }
 
     const extrinsic = api.tx.phaClaim.claimErc20Token(claimer, tx, sign)
     const promise = new Promise<Hash>((resolve, reject) => {
-        // TODO: pass nonce to signAndSend
         extrinsic.send((result) => {
             console.log(`Extrinsic status: ${result.status.toString()}`)
 
-            // TODO: use status.isInBlock while nonce is available
             if (result.status.isFinalized) {
                 const failure = result.events.filter((e) => {
                     // https://polkadot.js.org/docs/api/examples/promise/system-events
