@@ -51,7 +51,7 @@ export default function Application({ Component, pageProps }: AppProps): JSX.Ele
         disconnect: disconnectWeb3,
         provider: web3provider,
         state: web3state
-    } = useWeb3({ network: 'test' })
+    } = useWeb3({ network: process?.env?.NETWORK ?? 'poc4' })
 
     const web3 = useMemo(() => {
         return web3provider === null ? null : new Web3(web3provider as any)

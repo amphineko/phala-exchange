@@ -15,7 +15,7 @@ interface Web3Wrapper {
 }
 
 function useBrowserWeb3(options: {
-    network: 'test'
+    network: string
 }): Web3Wrapper {
     const { network } = options
 
