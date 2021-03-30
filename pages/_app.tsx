@@ -1,4 +1,4 @@
-import { Box, Container, CssBaseline, Paper, Tab, Tabs } from '@material-ui/core'
+import { CssBaseline, GeistProvider, Page, Spacer, Tabs, Text } from '@geist-ui/react'
 import { AppProps } from 'next/app'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import Web3 from 'web3'
 import Web3Context from '../contexts/Web3Context'
 import { useWeb3 } from '../providers/web3'
+import { theme } from '../styles/theme'
 import WalletWidget from '../widgets/Wallet'
 
 function useWeb3Accounts(web3: Web3 | null): {
@@ -65,22 +66,34 @@ export default function Application({ Component, pageProps }: AppProps): JSX.Ele
     const router = useRouter()
 
     const currentTabIndex = ({
-        '/burn': 0,
-        '/claim': 1
-    })[router.pathname] ?? undefined
+        '/burn': 'burn',
+        '/claim': 'claim'
+    })[router.pathname.toLowerCase()] ?? undefined
 
-    if (currentTabIndex === undefined && typeof window !== 'undefined') {
-        // eslint-disable-next-line no-void
-        void router.push('/burn')
-    }
+    useEffect(() => {
+        router.prefetch('/burn').catch(() => { })
+        router.prefetch('/claim').catch(() => { })
+
+        if (currentTabIndex === undefined && typeof window !== 'undefined') {
+            // eslint-disable-next-line no-void
+            void router.push('/burn')
+        }
+    })
 
     return (
         <Web3Context.Provider value={{ account, web3 }}>
-            <CssBaseline />
-            <Container maxWidth="sm">
-                <Paper elevation={4}>
-                    <Box component="header" style={{ padding: '1rem', paddingBottom: 0 }}>
-                        <h1 style={{ fontSize: '1.2rem', fontWeight: 'normal' }}>tPHA exchange</h1>
+            <GeistProvider themes={[theme]} themeType="Custom">
+                <CssBaseline />
+                <Page size="mini">
+                    <Page.Header>
+                        <Text h1 size="1.2rem" style={{ paddingTop: '4rem' }}>tPHA exchange</Text>
+                        <Text>
+                            <Link href='https://phala.network/'>Home</Link>
+                            <Spacer inline x={1} />
+                            <Link href='https://t.me/phalanetwork'>Telegram</Link>
+                            <Spacer inline x={1} />
+                            <Link href='https://discord.com/invite/zjdJ7d844d'>Discord</Link>
+                        </Text>
                         <WalletWidget
                             availableAccounts={availableAccounts}
                             connect={connectWeb3}
@@ -89,19 +102,21 @@ export default function Application({ Component, pageProps }: AppProps): JSX.Ele
                             disconnect={disconnectWeb3}
                             setAccount={setAccount}
                         />
-                    </Box>
-                    <Box>
-                        <Tabs value={currentTabIndex}>
-                            {/* TODO: highlight current tab */}
-                            <Link href="/burn"><Tab label="Burn" /></Link>
-                            <Link href="/claim"><Tab label="Claim" /></Link>
+                    </Page.Header>
+
+                    <Page.Content>
+                        <Tabs onChange={(value) => { router.push(value).catch(() => { }) }} value={currentTabIndex}>
+                            <Link href="/burn">
+                                <Tabs.Item label="Burn" value="burn" />
+                            </Link>
+                            <Link href="/claim">
+                                <Tabs.Item label="Claim" value="claim" />
+                            </Link>
                         </Tabs>
-                    </Box>
-                    <Box style={{ paddingBottom: '1rem', paddingTop: '1rem' }}>
                         <Component {...pageProps} />
-                    </Box>
-                </Paper>
-            </Container>
+                    </Page.Content>
+                </Page>
+            </GeistProvider>
         </Web3Context.Provider>
     )
 }

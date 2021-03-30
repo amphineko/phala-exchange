@@ -1,11 +1,10 @@
-import { Box, Button, CircularProgress, Container, Link, TextField } from '@material-ui/core'
-import { MonetizationOn } from '@material-ui/icons'
-import { Alert } from '@material-ui/lab'
+import { Button, Grid, Input, Link, Note, Text } from '@geist-ui/react'
+import { Send } from '@geist-ui/react-icons'
 import { EcdsaSignature, EthereumTxHash } from '@phala-network/typedefs'
 import { AccountId } from '@polkadot/types/interfaces'
 import { decodeAddress } from '@polkadot/util-crypto'
 import { isLeft, isRight } from 'fp-ts/lib/These'
-import React, { useContext, useMemo, useState } from 'react'
+import React, { ReactNode, useContext, useMemo, useState } from 'react'
 import Web3Context from '../contexts/Web3Context'
 import { ethereumTxHash } from '../lib/ethereum/io'
 import { createClaimSignature, sendClaimTransaction } from '../lib/phala/claim'
@@ -39,8 +38,18 @@ function useEthTxHash(): [EthereumTxHash | null, string | null, (input: string) 
     }]
 }
 
-const claimerHelperText = 'Account who receive the tokens on the Phala network'
-const txHashHelperText = 'Transaction hash of burned Ethereum PHA tokens'
+// const claimerHelperText = 'Account who receive the tokens on the Phala network'
+// const txHashHelperText = 'Transaction hash of burned Ethereum PHA tokens'
+
+const ErrorWidget = (props: { children: ReactNode }): JSX.Element => {
+    return (
+        <Note label="Error" type="error">
+            <Text span>
+                {props.children}
+            </Text>
+        </Note>
+    )
+}
 
 export default function ClaimPage(): JSX.Element {
     const { account, web3 } = useContext(Web3Context)
@@ -102,64 +111,63 @@ export default function ClaimPage(): JSX.Element {
     }, [account, web3])
 
     const preconditionWidget = useMemo(() => precondition !== null && (
-        <Alert severity="error" style={{ marginTop: '1rem' }}>
-            <span style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
-                {`${precondition}`}
-            </span>
-        </Alert>
+        <ErrorWidget>
+            {`${precondition}`}
+        </ErrorWidget>
     ), [precondition])
 
     const claimErrorWidget = useMemo(() => claimError !== null && (
-        <Alert severity="error" style={{ marginTop: '1rem' }}>
-            <span style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
-                {`${claimError}`}
-            </span>
-        </Alert>
+        <ErrorWidget>
+            {`${claimError}`}
+        </ErrorWidget>
     ), [claimError])
 
     const claimTxWidget = useMemo(() => claimTx !== null && (
-        <Alert severity="success" style={{ marginTop: '1rem' }}>
-            <span style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
-                Claimed! <Link href={claimTx.url}>{claimTx.hash}</Link>
-            </span>
-        </Alert>
+        <ErrorWidget>
+            Claimed! <Link href={claimTx.url}>{claimTx.hash}</Link>
+        </ErrorWidget>
     ), [claimTx])
 
     return (
-        <Container>
-            <Alert severity='warning'>This feature is currently under development</Alert>
-            {preconditionWidget}
-            {claimErrorWidget}
-            {claimTxWidget}
-            <TextField
-                autoFocus
-                error={claimerError !== null}
-                fullWidth
-                helperText={claimerError ?? claimerHelperText}
-                label="Recipient address"
-                onChange={(ev) => onClaimerChange(ev?.target?.value)}
-                placeholder="SS58-formatted Phala address"
-                style={{ marginTop: '1rem' }}
-            />
-            <TextField
-                autoFocus
-                error={txHashError !== null}
-                fullWidth
-                helperText={txHashError ?? txHashHelperText}
-                label="Ethereum transaction"
-                onChange={(ev) => onTxHashChange(ev.target.value)}
-                placeholder="0x000000000000000000000000000000000000dead"
-                style={{ marginTop: '1rem' }}
-            />
-            <Box>
+        <Grid.Container direction="column" gap={1}>
+            <Grid>
+                {preconditionWidget}
+                {claimErrorWidget}
+                {claimTxWidget}
+            </Grid>
+
+            <Grid>
+                <Input
+                    autoFocus
+                    label="Recipient"
+                    onChange={(ev) => onClaimerChange(ev?.target?.value)}
+                    placeholder="SS58-formatted Phala address"
+                    status={claimerError === null ? 'secondary' : 'error'}
+                    width="100%"
+                />
+            </Grid>
+
+            <Grid>
+                <Input
+                    autoFocus
+                    label="Ethereum transaction"
+                    onChange={(ev) => onTxHashChange(ev.target.value)}
+                    placeholder="0x"
+                    status={txHashError === null ? 'secondary' : 'error'}
+                    width="100%"
+                />
+            </Grid>
+
+            <Grid>
                 <Button
+                    auto
                     disabled={!isFormValid || isClaiming}
+                    icon={<Send />}
+                    loading={isClaiming}
                     onClick={() => startClaim()}
-                    startIcon={isClaiming ? <CircularProgress /> : <MonetizationOn />}
-                    style={{ display: 'inline-block', marginTop: '1rem' }}
-                    variant="contained"
-                >{isClaiming ? '' : 'Claim'}</Button>
-            </Box>
-        </Container>
+                    type="secondary"
+                >{isClaiming ? 'Sending' : 'Claim'}</Button>
+            </Grid>
+        </Grid.Container>
     )
 }

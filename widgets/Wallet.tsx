@@ -1,7 +1,5 @@
-import { Box, Button, CircularProgress } from '@material-ui/core'
-import EjectIcon from '@material-ui/icons/Eject'
-import LockOpenIcon from '@material-ui/icons/LockOpen'
-import { Alert } from '@material-ui/lab'
+import { Button, Grid, Note } from '@geist-ui/react'
+import { Key, XCircle } from '@geist-ui/react-icons'
 import React, { useMemo } from 'react'
 import { Web3State } from '../providers/web3'
 
@@ -32,38 +30,45 @@ export default function WalletWidget(props: {
     const button = useMemo(() => {
         switch (state) {
             case 'connected':
-                return (<Button
-                    color='secondary'
-                    onClick={disconnect}
-                    startIcon={<EjectIcon />}
-                    variant='contained'
-                >Disconnect Wallet</Button>)
+                return (
+                    <Button
+                        auto
+                        icon={<XCircle />}
+                        onClick={disconnect}
+                        type="secondary"
+                    >Disconnect Wallet</Button>
+                )
             case 'disconnected':
-                return (<Button
-                    color='primary'
-                    onClick={connect}
-                    startIcon={<LockOpenIcon />}
-                    variant='contained'
-                >Connect Wallet</Button >)
+                return (
+                    <Button
+                        auto
+                        icon={<Key />}
+                        onClick={connect}
+                        type="secondary"
+                    >Connect Wallet</Button>
+                )
             case 'connecting':
             case 'disconnecting':
-                return (<Button disabled startIcon={<CircularProgress />}>Connecting</Button>)
+                return (
+                    <Button disabled loading={true}>Connecting</Button>
+                )
         }
     }, [connect, disconnect, state])
 
     const accountInfo = useMemo(() =>
         state === 'connected'
             ? (account !== null
-                ? (<Alert severity='success'>Account: {account}</Alert>)
-                : (<Alert severity='error'>No account available</Alert>)
+                ? (<Note label="Account" type="secondary">{account}</Note>)
+                : (<Note type="error">No account available</Note>)
             )
             : null, [account, state])
 
     return (
-        <Box>
-            <Box display="block">{button}</Box>
-            {state === 'connected' &&
-                <Box display="block" style={{ marginTop: '1rem' }}>{accountInfo}</Box>}
-        </Box>
+        <Grid.Container direction="column" gap={1}>
+            <Grid>{button}</Grid>
+            <Grid>
+                {state === 'connected' && accountInfo}
+            </Grid>
+        </Grid.Container>
     )
 }

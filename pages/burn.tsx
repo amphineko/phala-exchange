@@ -1,6 +1,5 @@
-import { Button, CircularProgress, Container, Link, TextField, Typography } from '@material-ui/core'
-import MonetizationOn from '@material-ui/icons/MonetizationOn'
-import { Alert } from '@material-ui/lab'
+import { Button, Grid, Input, Link, Note, Spinner, Text } from '@geist-ui/react'
+import { ExternalLink, Send } from '@geist-ui/react-icons'
 import React, { useContext, useMemo, useState } from 'react'
 import Web3 from 'web3'
 import Web3Context from '../contexts/Web3Context'
@@ -47,10 +46,11 @@ export default function BurnPage(): JSX.Element {
             setAmountError('Amount to burn is not a number')
             return
         }
-        if (value <= 0 || value > 0.1) {
-            setAmountError('Amount to burn is out of range')
-            return
-        }
+
+        // if (value <= 0 || value > 0.1) {
+        //     setAmountError('Amount to burn is out of range')
+        //     return
+        // }
 
         setAmount(value)
         setAmountError(null)
@@ -97,19 +97,19 @@ export default function BurnPage(): JSX.Element {
     // error presentation widget
 
     const localConditionErrorWidget = useMemo(() => localError === null || (
-        <Alert severity="error" style={{ marginTop: '1rem' }}>
+        <Note type="error" style={{ marginTop: '1rem' }}>
             <span style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
                 {localError}
             </span>
-        </Alert>
+        </Note>
     ), [localError])
 
     const lastTxnErrorWidget = useMemo(() => lastTxnError === null || (
-        <Alert severity="error" style={{ marginTop: '1rem' }}>
+        <Note type="error" style={{ marginTop: '1rem' }}>
             <span style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
                 Transaction failed: {lastTxnError}
             </span>
-        </Alert>
+        </Note>
     ), [lastTxnError])
 
     const lastTxnInfoWidget = useMemo(() => {
@@ -118,56 +118,56 @@ export default function BurnPage(): JSX.Element {
         const txnInspectUrl = `${lastTxn.etherscanBaseUrl}/tx/${lastTxn.hash}`
 
         return (
-            <Alert severity="success" style={{ marginTop: '1rem' }}>
+            <Note label="OK" type="success" style={{ marginTop: '1rem' }}>
                 <span style={{ wordBreak: 'break-all', wordWrap: 'break-word' }}>
-                    Transaction sent: <Link href={txnInspectUrl} rel="noreferrer" target="_blank">{lastTxn.hash}</Link>
+                    <Link href={txnInspectUrl} rel="noreferrer" target="_blank">
+                        {lastTxn.hash}
+                        <ExternalLink size="0.8rem" style={{ marginLeft: '0.25em' }} />
+                    </Link>
                 </span>
-            </Alert >
+            </Note>
         )
     }, [lastTxn])
 
     return (
-        <Container>
-            <TextField
-                defaultValue={defaultAmount}
-                error={amountError !== null}
-                fullWidth
-                helperText={amount !== null ? `${1000 * Number(amount)} tPHA` : ''}
-                label="Amount"
-                onChange={(ev) => onAmountInputChanged(ev.target.value)}
-                required
-            />
+        <Grid.Container direction="column" gap={1}>
+            <Grid>
+                {localConditionErrorWidget}
 
-            <Button
-                disabled={!enabled}
-                onClick={() => startBurn()}
-                startIcon={!isBurning ? <MonetizationOn /> : <CircularProgress />}
-                style={{ marginTop: '1rem' }}
-                variant="contained"
-            >Exchange</Button>
+                {lastTxnErrorWidget}
 
-            {localConditionErrorWidget}
+                {lastTxnInfoWidget}
+            </Grid>
 
-            {lastTxnErrorWidget}
+            <Grid>
+                <Input
+                    autoFocus
+                    defaultValue={defaultAmount}
+                    label="Amount"
+                    labelRight="PHA"
+                    onChange={(ev) => onAmountInputChanged(ev.target.value)}
+                    required
+                    status={amountError === null ? 'secondary' : 'error'}
+                    width="100%"
+                />
+            </Grid>
 
-            {lastTxnInfoWidget}
+            <Grid>
+                <Button
+                    auto
+                    disabled={!enabled}
+                    onClick={() => startBurn()}
+                    icon={isBurning ? <Spinner /> : <Send />}
+                    loading={isBurning}
+                    type="secondary"
+                >{isBurning ? 'Sending' : 'Burn'}</Button>
+            </Grid>
 
-            <Typography
-                color='textSecondary'
-                style={{ marginTop: '1rem' }}
-                variant="body2"
-            >
-                The maximum amount to exchange is limited to 0.1 to avoid accidental asset loss. Ask in our Discord if you want to exchange more.
-            </Typography>
-
-            <Typography
-                color='textSecondary'
-                hidden={!(isBurning || lastTxn !== null)}
-                style={{ marginTop: '1rem' }}
-                variant="body2"
-            >
-                Please sit back and relax while the transaction is being sent and accepted by the network.
-            </Typography>
-        </Container >
+            <Grid>
+                <Text small type="secondary">
+                    Please sit back and relax while the transaction is being sent and accepted by the network.
+                </Text>
+            </Grid>
+        </Grid.Container>
     )
 }
