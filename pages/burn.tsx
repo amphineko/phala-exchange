@@ -82,6 +82,7 @@ export default function BurnPage(): JSX.Element {
     const startBurn = (): void => {
         setBurning(true)
         setLastTxn(null)
+        setLastTxnError(null)
 
         if (account === null || amount === null || web3 === null) {
             return
@@ -89,7 +90,7 @@ export default function BurnPage(): JSX.Element {
 
         burn(account, amount, web3)
             .then((txn) => setLastTxn(txn))
-            .catch((reason) => setLastTxnError(reason))
+            .catch((reason) => setLastTxnError((reason as Error)?.message ?? reason))
             .finally(() => setBurning(false))
     }
 
