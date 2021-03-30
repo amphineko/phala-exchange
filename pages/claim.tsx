@@ -23,7 +23,7 @@ function useClaimer(): [AccountId | null, string | null, (input: string) => void
         } catch (error) {
             // decodeAddress should throw when invalid
             setClaimer(null)
-            setClaimerError(error instanceof Error ? error.message : toString.call(error))
+            setClaimerError((error as Error)?.message ?? toString.call(error))
         }
     }]
 }
@@ -134,7 +134,6 @@ export default function ClaimPage(): JSX.Element {
             {claimTxWidget}
             <TextField
                 autoFocus
-                defaultValue='5ECEf1DS4CQSfW9RVg7ZUwiuoF7w9WfZT8sGjSNRLUjzD2gT'
                 error={claimerError !== null}
                 fullWidth
                 helperText={claimerError ?? claimerHelperText}
@@ -145,7 +144,6 @@ export default function ClaimPage(): JSX.Element {
             />
             <TextField
                 autoFocus
-                defaultValue='0xf85cb63dabc74e238f8ae20a8d0521523f051373640e6ec721cca9fb9dd291dc'
                 error={txHashError !== null}
                 fullWidth
                 helperText={txHashError ?? txHashHelperText}
