@@ -86,8 +86,7 @@ export default function ClaimPage(): JSX.Element {
         setClaiming(true)
         setClaimError(null)
         claim().catch((error) => {
-            console.log(error)
-            setClaimError((claimError as unknown as Error)?.message ?? claimError)
+            setClaimError((error as unknown as Error)?.message ?? error)
         }).finally(() => {
             setClaiming(false)
         })
